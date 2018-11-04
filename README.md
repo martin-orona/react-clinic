@@ -1,11 +1,11 @@
-This is a UI for the Sprint PetClinic backend.
+This is a UI for the Spring PetClinic backend.
 
 ## Table of Contents
 
-- [how to generate project](#how to generate project)
+- [How to generate project](#how-to-generate-project)
 - "Old" [Auto Generated Content](#auto-generated-content)
 
-## how to generate project
+## How to generate project
 
 This is a sequence of steps taken to generate this project. I'm saving it for posterity.
 
@@ -210,6 +210,69 @@ npm start
 ```
 
 I verified that the client and server worked togerther by seeing the client pop up in my browser and the message from the server displayed in the page. I hit refresh to see the changing timestamp to prove that it wasn't a "hard coded" value.
+
+
+## How to get DB running
+
+I used the article [How to query HyperSQL database from C#](http://nikolaiklimov.de/query-java-HyperSQL-database-with-csharp/) as a reference for getting HyperSQL to run. I looked up this article because C# is the development environment that I'm currently most practiced in.
+
+I downloaded the latest version of HyperSQL Database Engine (HSQLDB) from https://sourceforge.net/projects/hsqldb/files/.
+
+**Note**: assume a base path for the following DB content, e.g. `D:\dev\Intuit\petclinic-db`.
+
+I extracted the HSQLDB content to directory `hsqldb-2.4.1`.
+
+I created directory `database` to hold HSQLDB database files.
+
+I copied the the Spring PetClinic database scripts into directory `db-scripts` from source directory `src\main\resources\db\hsqldb`.
+
+I ran the HSQLDB server via command line:
+```sh
+java -cp .\hsqldb-2.4.1\hsqldb\lib\hsqldb.jar org.hsqldb.server.Server ? --database.0 file:database\petclinicdb --dbname.0 pcdb
+
+# running in file mode so that the data may persist across mishaps/reboots
+# the HSQLDB DB files will go to directory database and have names starting with petclinicdb
+# when connecting to the database server, the database alies will be pcdb
+```
+
+I ran the HSQLDB UI:
+```sh
+.\hsqldb-2.4.1\hsqldb\lib\hsqldb.jar
+```
+
+I tried to run the `schema.sql` script but kept getting the error message `user lacks privilege or object not found: VETS / Error Code: -5501 / State: 42501`. When running the SQL statements from the built in command `Test Script`, I didn't get the error.
+
+I prepended the test script SQL statements to the beginning of `schema.sql` and executed its content; with success. I then executed `data.sql` and got data into the database.
+
+
+### Proving that the Express web server can talk to the DB
+
+I added a Node.js DB driver: 
+```sh
+cd server
+npm install --save jdbc
+```
+
+I added connection setup and SQL select statement call to `server.js` based on the [node-jdbc](https://github.com/CraZySacX/node-jdbc) documentation.
+
+I got errors.
+
+I created a `drivers` folder to house the JDBC drivers needed to talk to the DB.
+
+I copied `hsqldb.jar` to `drivers` from `hsqldb-2.4.1\hsqldb\lib`.
+
+I ran the server with no errors.
+
+I verified that it worked by pointing my browser at http://localhost:5000/api/hello.
+
+The data result count was 0.
+
+I ran the `data.sql` script. I refreshed the page. This time the result count was higher than 0; success.
+
+
+
+
+
 
 
 ## Auto Generated Content
