@@ -11,18 +11,25 @@ import Page from "./Page";
 interface IVetsPageProps extends IAppState {
   requestVetList: () => void;
 }
-const Vets = (props: IVetsPageProps) => {
-  return (
-    <Page whichPage={Pages.Vets}>
-      <p>
-        These are the heroes that save out patients, they deserve a prime time
-        drama; 20 years ago!
-      </p>
 
-      <ReduxVetsDataGrid />
-    </Page>
-  );
-};
+class Vets extends React.Component<IVetsPageProps> {
+  public componentDidMount() {
+    this.props.requestVetList();
+  }
+
+  public render() {
+    return (
+      <Page whichPage={Pages.Vets}>
+        <p>
+          These are the heroes that save out patients, they deserve a prime time
+          drama; 20 years ago!
+        </p>
+
+        <ReduxVetsDataGrid />
+      </Page>
+    );
+  }
+}
 
 const mapStateToProps = (state: IAppState) => state;
 

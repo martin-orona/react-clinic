@@ -6,6 +6,7 @@ import {
   IntegratedSelection,
   IntegratedSorting,
   PagingState,
+  RowDetailState,
   SelectionState,
   SortingState
 } from "@devexpress/dx-react-grid";
@@ -20,7 +21,8 @@ import {
   TableEditColumn,
   TableEditRow,
   TableFilterRow,
-  TableHeaderRow
+  TableHeaderRow,
+  TableRowDetail
 } from "@devexpress/dx-react-grid-material-ui";
 // tslint:disable-next-line:ordered-imports
 import { Paper } from "@material-ui/core";
@@ -28,24 +30,27 @@ import * as React from "react";
 import { connect } from "react-redux";
 
 import { DataType } from "../logic/Data";
-import { ActionType, IAppState } from "../shared/Interfaces";
+import { ActionType, IAppState, IDataGridState } from "../shared/Interfaces";
 
 const GRID_STATE_CHANGE_ACTION = ActionType.DataGridStateChange;
 
 export interface IDataGridProps extends IAppState {
   dataGridType: DataType;
-  onSortingChange: any;
-  onSelectionChange: any;
-  onFiltersChange: any;
-  onCurrentPageChange: any;
-  onPageSizeChange: any;
+  rowDetailComponent: any;
+  onAddRecord: any;
+
+  onAddedRowsChange: any;
   onColumnOrderChange: any;
   onColumnWidthsChange: any;
-  onEditingRowIdsChange: any;
-  onRowChangesChange: any;
-  onAddedRowsChange: any;
   onCommitChanges: any;
-  onAddRecord: any;
+  onCurrentPageChange: any;
+  onEditingRowIdsChange: any;
+  onExpandedRowIdsChange: any;
+  onFiltersChange: any;
+  onPageSizeChange: any;
+  onRowChangesChange: any;
+  onSortingChange: any;
+  onSelectionChange: any;
 }
 
 const GridContainer = (props: IDataGridProps) => {
@@ -67,6 +72,10 @@ const GridContainer = (props: IDataGridProps) => {
           onCurrentPageChange={props.onCurrentPageChange}
           pageSize={gridProps.pageSize}
           onPageSizeChange={props.onPageSizeChange}
+        />
+        <RowDetailState
+          expandedRowIds={gridProps.expandedRowIds}
+          onExpandedRowIdsChange={props.onExpandedRowIdsChange}
         />
         <SelectionState
           selection={gridProps.selection}
@@ -102,15 +111,25 @@ const GridContainer = (props: IDataGridProps) => {
         />
 
         <TableFilterRow />
-        <PagingPanel pageSizes={gridProps.pageSizes} />
+        {gridProps.isPagingEnabled ? (
+          <PagingPanel pageSizes={gridProps.pageSizes} />
+        ) : (
+          ""
+        )}
         <TableEditRow />
         <TableEditColumn
           showAddCommand={true}
           showEditCommand={false}
           showDeleteCommand={false}
         />
+        {gridProps.isExpandingRowsEnabled ? (
+          <TableRowDetail contentComponent={props.rowDetailComponent} />
+        ) : (
+          ""
+        )}
+
         {!gridProps.columnBands || gridProps.columnBands.length === 0 ? (
-          <React.Fragment />
+          ""
         ) : (
           <TableBandHeader columnBands={gridProps.columnBands} />
         )}
@@ -119,22 +138,29 @@ const GridContainer = (props: IDataGridProps) => {
   );
 };
 
-export const DefaultDataGridInitialState = {
-  sorting: [],
-  // tslint:disable-next-line:object-literal-sort-keys
-  selection: [],
-  // expandedRowIds: [1],
-  filters: [],
-  currentPage: 0,
-  pageSize: 10,
-  pageSizes: [5, 10, 15],
-  columnOrder: [],
-  columnWidths: [],
+export const DefaultDataGridInitialState: IDataGridState = {
   columns: [],
   rows: [],
-  editingRowIds: [],
+
   addedRows: [],
-  rowChanges: {}
+  columnBands: [],
+  columnOrder: [],
+  columnWidths: [],
+  currentPage: 0,
+  editingRowIds: [],
+  expandedRowIds: [],
+  filters: [],
+  pageSize: 10,
+  pageSizes: [5, 10, 15],
+  rowChanges: [],
+  selection: [],
+  sorting: [],
+
+  isAddingRowsEnabled: true,
+  isExpandingRowsEnabled: true,
+  isFilteringEnabled: true,
+  isPagingEnabled: true,
+  isSortingEnabled: true
 };
 
 export const createGridAction = (
@@ -239,6 +265,18 @@ const mergeProps = (
           merged.ui.grid[merged.dataGridType],
           "addedRows",
           rows && rows.length >= 1 ? [rows[0]] : []
+        )
+      );
+    },
+    onExpandedRowIdsChange: (expandedRowIds: any) => {
+      return dispatch(
+        createGridAction(
+          merged.dataGridType,
+          merged.ui.grid[merged.dataGridType],
+          "expandedRowIds",
+          expandedRowIds.length <= 1
+            ? expandedRowIds
+            : [expandedRowIds[expandedRowIds.length - 1]]
         )
       );
     },

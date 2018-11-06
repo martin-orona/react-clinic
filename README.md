@@ -320,3 +320,17 @@ npm install --save @devexpress/dx-react-grid-material-ui
 It was a major pain to get it to work, probably because complex tools are complex.
 
 Once I got the grid working, I integrated its ability to add a record (here in the form of adding a pet).
+
+## Added Vets
+
+I added a screen to view and add Vets.
+
+**BUG:** I noticed an odd behavior where the Vets screen is calling the server a lot more than the Pets screen; event though the Vets screen is based very heavily on the Pets screen and accompanying code.
+
+**BUG:** I also noticed that when adding a Vet to the DB, while the record is added successfully, the response doesn't come back to the UI to trigger an update with the new data. My gut says that it is a bug with the server code or with the high number of calls that the React client makes for the same UI trigger. An F5 refresh shows the data as expected.
+
+## Added pet appointments
+
+I added the ability to view and add apointments to the Pet screen by expanding the pet row.
+
+**BUG** I noticed that like the Vets, pet appointments do not cause an appropriate screen refresh with new data. Additionally once an appointment is added, the child/detail UI gets "stuck" and shows the same data no matter what pet row is expanded. Oddly, inspecting the state of the React components, they have the update records. An F5 refresh shows the data as expected; and the child/detail UI goes back to working normally.

@@ -11,15 +11,22 @@ import Page from "./Page";
 interface IPetsPageProps extends IAppState {
   requestPetList: () => void;
 }
-const Pets = (props: IPetsPageProps) => {
-  return (
-    <Page whichPage={Pages.Pets}>
-      <p>These are the lovely patients that give our lives meaning?</p>
 
-      <ReduxPetsDataGrid />
-    </Page>
-  );
-};
+class Pets extends React.Component<IPetsPageProps> {
+  public componentDidMount() {
+    this.props.requestPetList();
+  }
+
+  public render() {
+    return (
+      <Page whichPage={Pages.Pets}>
+        <p>These are the lovely patients that give our lives meaning.</p>
+
+        <ReduxPetsDataGrid />
+      </Page>
+    );
+  }
+}
 
 const mapStateToProps = (state: IAppState) => state;
 

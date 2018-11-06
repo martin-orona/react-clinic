@@ -1,6 +1,7 @@
 import { connect } from "react-redux";
 
 import DataGrid, { DefaultDataGridInitialState } from "../components/DataGrid";
+import PetsRowDetail from "../components/PetsRowDetail";
 import Data, { DataType } from "../logic/Data";
 import { IAppState } from "../shared/Interfaces";
 import { buildState } from "../shared/Utilities";
@@ -17,7 +18,10 @@ const mergeProps = (
   const initialColumnWidth = 200;
   return buildState(
     stateProps,
-    { onAddRecord: Data.request.addPet },
+    {
+      onAddRecord: Data.request.addPet,
+      rowDetailComponent: PetsRowDetail
+    },
     ownProps,
     {
       dataGridType: DataType.Pets,
@@ -75,3 +79,5 @@ export const ReduxPetsDataGrid = connect(
   mapDispatchToProps,
   mergeProps
 )(DataGrid);
+
+export default ReduxPetsDataGrid;

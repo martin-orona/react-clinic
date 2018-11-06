@@ -1,5 +1,6 @@
 import {
   ActionType,
+  IAddPetAppointmentData,
   IAddPetData,
   IAddVetData,
   IAppState,
@@ -16,7 +17,8 @@ import Server from "./ServerApi";
 export enum DataType {
   Unknown = "Unknown",
   Pets = "Pets",
-  Vets = "Vets"
+  Vets = "Vets",
+  PetAppointments = "PetAppointments"
 }
 
 // #endregion interfaces
@@ -70,7 +72,14 @@ function dataRequestComplete(
     data: {
       isKnownStale: { [action.dataType]: false },
       lastUpdate: { [action.dataType]: action.when },
-      values: { [action.dataType]: action.response }
+      values: {
+        [action.dataType]:
+          action.dataType !== DataType.PetAppointments
+            ? action.response
+            : {
+                [action.recordId]: action.response
+              }
+      }
     }
   } as IAppState);
 }
@@ -83,6 +92,29 @@ function dataRequestFailed(state: IAppState, action: IDataRequestFailedAction) {
 // #endregion reducers
 
 // #region requests
+
+function requestPetAppointments(
+  state: IAppState,
+  petId: number,
+  dispatch: any
+) {
+  const shouldRequest = shouldRequestData(state, DataType.PetAppointments);
+
+  // tslint:disable-next-line:no-console
+  console.log(
+    `data request: type:${DataType.PetAppointments} should:${
+      shouldRequest.should
+    } reason:${shouldRequest.reason}`
+  );
+
+  if (shouldRequest.should) {
+    // tslint:disable-next-line:no-console
+    console.log('"calling" server');
+
+    // dispatch(callServer_InitialRequest(stateProps) as any);
+    dispatch(Server.getPetAppointments(petId, dispatch));
+  }
+}
 
 function requestPets(state: IAppState, dispatch: any) {
   const shouldRequest = shouldRequestData(state, DataType.Pets);
@@ -186,11 +218,46 @@ function addVet(state: IAppState, vet: IAddVetData, dispatch: any) {
   dispatch(Server.addVet(state, vet, dispatch));
 }
 
+function addPetApointment(
+  state: IAppState,
+  petId: number,
+  record: IAddPetAppointmentData,
+  dispatch: any
+) {
+  let hasAllRequiredProperties = true;
+
+  record.PET_ID = petId;
+
+  if (!record.hasOwnProperty("SCHEDULED_DATE")) {
+    hasAllRequiredProperties = false;
+  }
+
+  if (!record.hasOwnProperty("VET_LAST_NAME")) {
+    hasAllRequiredProperties = false;
+  }
+
+  if (!hasAllRequiredProperties) {
+    window.setTimeout(() => {
+      dispatch({
+        added: [record],
+        dataGridType: DataType.PetAppointments,
+        type: ActionType.DataGridNotReadyToSave
+      } as IDataGridNotReadyToSaveAction);
+    }, 10);
+
+    return;
+  }
+
+  dispatch(Server.addPetApointment(state, record, dispatch));
+}
+
 const Requests = {
+  petAppointments: requestPetAppointments,
   pets: requestPets,
   vets: requestVets,
 
   addPet,
+  addPetApointment,
   addVet
 };
 

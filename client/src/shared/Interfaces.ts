@@ -23,22 +23,25 @@ export interface IDataGridState {
   columns: any;
   columnBands: any;
   rows: any;
-  sorting: any;
-  onSortingChange: any;
-  selection: any;
-  onSelectionChange: any;
-  filters: any;
-  onFiltersChange: any;
-  currentPage: any;
-  onCurrentPageChange: any;
-  pageSize: any;
-  onPageSizeChange: any;
-  pageSizes: any;
+
+  addedRows: any;
   columnOrder: any;
   columnWidths: any;
+  currentPage: any;
   editingRowIds: any;
-  addedRows: any;
+  expandedRowIds: any;
+  filters: any;
+  pageSize: any;
+  pageSizes: any;
   rowChanges: any;
+  selection: any;
+  sorting: any;
+
+  isAddingRowsEnabled: boolean;
+  isExpandingRowsEnabled: boolean;
+  isFilteringEnabled: boolean;
+  isPagingEnabled: boolean;
+  isSortingEnabled: boolean;
 }
 
 export interface IDataState {
@@ -83,6 +86,22 @@ export interface IVetDisplayData {
 // tslint:disable-next-line:no-empty-interface
 export interface IAddVetData extends IVetDisplayData {}
 
+export interface IPetAppointmentRecord extends IPetAppointmentDisplayData {
+  ID: number;
+  PET_ID: number;
+  VET_ID: number;
+}
+
+export interface IPetAppointmentDisplayData {
+  SCHEDULED_DATE: string;
+  VET_LAST_NAME: string;
+  DESCRIPTION: string;
+}
+
+export interface IAddPetAppointmentData extends IPetAppointmentDisplayData {
+  PET_ID: number;
+}
+
 // #endregion app state
 
 // #region redux interfaces
@@ -117,11 +136,13 @@ export interface IDataGridNotReadyToSaveAction extends IAction {
 
 export interface IDataRequestBeginAction extends IAction {
   dataType: DataType;
+  recordId: number;
   when: Date;
 }
 
 export interface IDataRequestCompleteAction extends IAction {
   dataType: DataType;
+  recordId: number;
   when: Date;
   response: any;
 }

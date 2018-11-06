@@ -14,15 +14,18 @@ export const AppDefaultState: IAppState = {
   data: {
     isKnownStale: {
       [DataType.Pets]: true,
-      [DataType.Vets]: true
+      [DataType.Vets]: true,
+      [DataType.PetAppointments]: true
     },
     lastRequest: {
       [DataType.Pets]: new Date(1),
-      [DataType.Vets]: new Date(1)
+      [DataType.Vets]: new Date(1),
+      [DataType.PetAppointments]: new Date(1)
     },
     lastUpdate: {
       [DataType.Pets]: new Date(1),
-      [DataType.Vets]: new Date(1)
+      [DataType.Vets]: new Date(1),
+      [DataType.PetAppointments]: new Date(1)
     },
     values: {}
   },
