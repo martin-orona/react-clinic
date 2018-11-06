@@ -108,18 +108,26 @@ async function closeConnectionAsync(db, connObj) {
 
 // #region query
 
-async function query(db, sqlQueryStatement) {
-  const connObj = await openConnectionAsync(db);
+// TODO: Now that inserts/updates use similar
+// functionality, consider refactoring.
+async function query(db, sqlStatement) {
+  let connObj = undefined;
+  try {
+    connObj = await openConnectionAsync(db);
+  } catch (err) {
+    console.log(`DB error while opening connection. error:[${err}]`);
+    return;
+  }
 
   let queryError = undefined;
 
   let results = undefined;
   try {
-    results = await executeQueryAsync(connObj, sqlQueryStatement);
+    results = await executeQueryAsync(connObj, sqlStatement);
   } catch (err) {
     queryError = err;
     console.log(
-      `DB error while executing query. query:[${sqlQueryStatement}] error:[${err}]`
+      `DB error while executing query. sql:[${sqlStatement}] error:[${err}]`
     );
   }
 
@@ -132,7 +140,8 @@ async function query(db, sqlQueryStatement) {
   return results;
 }
 
-async function executeQueryAsync(connObj, queryStatement) {
+// TODO: Consider refactoring to merge commonalities with insert/update.
+async function executeQueryAsync(connObj, sqlStatement) {
   return new Promise(executeQueryExecutor);
 
   function executeQueryExecutor(resolve, reject) {
@@ -151,7 +160,7 @@ async function executeQueryAsync(connObj, queryStatement) {
         }
 
         // statement.executeQuery("SELECT * FROM owners;", function(
-        statement.executeQuery(queryStatement, function(err, resultset) {
+        statement.executeQuery(sqlStatement, function(err, resultset) {
           if (err) {
             reject(err, "executeQuery: select");
             return;
@@ -162,9 +171,8 @@ async function executeQueryAsync(connObj, queryStatement) {
               console.log(
                 `${
                   results.length
-                } records returned for query: [${queryStatement}]`
+                } records returned for query: [${sqlStatement}]`
               );
-              console.log("ID: " + results[0].ID);
             }
             // release();
             resolve(results);
@@ -176,6 +184,77 @@ async function executeQueryAsync(connObj, queryStatement) {
 }
 
 // #endregion query
+
+// #region update
+
+async function insert(db, sqlStatement) {
+  return await update(db, sqlStatement);
+}
+
+async function update(db, sqlStatement) {
+  const connObj = await openConnectionAsync(db);
+
+  let queryError = undefined;
+
+  let results = undefined;
+  try {
+    results = await executeUpdateAsync(connObj, sqlStatement);
+  } catch (err) {
+    queryError = err;
+    console.log(
+      `DB error while executing update. sql:[${sqlStatement}] error:[${err}]`
+    );
+  }
+
+  await closeConnectionAsync(db, connObj);
+
+  if (queryError) {
+    throw queryError;
+  }
+
+  return results;
+}
+
+async function executeUpdateAsync(connObj, sqlStatement) {
+  return new Promise(executeQueryExecutor);
+
+  function executeQueryExecutor(resolve, reject) {
+    connObj.conn.createStatement(function(err, statement) {
+      if (err) {
+        reject(err, "createStatement");
+        return;
+      }
+
+      // Adjust some statement options before use.  See statement.js for
+      // a full listing of supported options.
+      statement.setFetchSize(100, function(err) {
+        if (err) {
+          reject(err, "setFetchSize");
+          return;
+        }
+
+        // statement.executeQuery("SELECT * FROM owners;", function(
+        statement.executeUpdate(sqlStatement, function(err, count) {
+          if (err) {
+            reject(err, "executeQuery: update");
+            return;
+          }
+
+          if (count > 0) {
+            console.log(
+              `${count} records updated for query: [${sqlStatement}]`
+            );
+          }
+          // release();
+          resolve(count);
+        });
+      });
+    });
+  }
+}
+
+// #endregion update
+
 // #endregion execute statements
 
 const DB = {
@@ -185,7 +264,8 @@ const DB = {
   closeConnectionAsync,
 
   query,
-  executeQueryAsync
+  insert,
+  update
 };
 exports.default = DB;
 // export default DB;

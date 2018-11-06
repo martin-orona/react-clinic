@@ -1,7 +1,16 @@
+import { CssBaseline } from "@material-ui/core";
 import * as React from "react";
-import "./App.css";
 
-import logo from "./logo.svg";
+import { ReduxHeader } from "./component-containers/ReduxHeader";
+
+import "typeface-roboto";
+import "./App.css";
+import ReduxHome from "./pages/Home";
+import ReduxPets from "./pages/Pets";
+import { IAppState } from "./shared/Interfaces";
+
+// tslint:disable-next-line:no-empty-interface
+export interface IAppProps extends IAppState {}
 
 class App extends React.Component {
   public state = { response: "" };
@@ -37,17 +46,15 @@ class App extends React.Component {
 
   public render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.tsx</code> and save to reload.
-        </p>
+      <React.Fragment>
+        <CssBaseline />
+        <ReduxHeader />
+
+        <ReduxHome />
+        <ReduxPets />
 
         <p>{this.state.response}</p>
-      </div>
+      </React.Fragment>
     );
   }
 }
