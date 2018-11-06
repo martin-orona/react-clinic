@@ -22,13 +22,22 @@ async function getAllPets() {
         O.FIRST_NAME AS OWNER_FIRST_NAME,
         O.LAST_NAME AS OWNER_LAST_NAME,
         T.NAME AS TYPE_NAME
-      FROM PETS AS P
+      FROM "PUBLIC"."PETS" AS P
         INNER JOIN OWNERS AS O
           ON P.OWNER_ID = O.ID
         INNER JOIN TYPES AS T
           ON P.TYPE_ID = T.ID
       ORDER BY P.NAME ASC
-  `
+    `
+  );
+}
+
+async function getAllVets() {
+  return await queryDbAsync(
+    ` SELECT *
+      FROM "PUBLIC"."VETS"
+      ORDER BY LAST_NAME ASC
+    `
   );
 }
 
@@ -43,7 +52,7 @@ const port = process.env.PORT || 5000;
 app.use(bodyParser.json());
 
 app.get("/api/hello", async (req, res) => {
-  var results = await queryDbAsync("SELECT * FROM owners;");
+  var results = await queryDbAsync("SELECT * FROM pets;");
 
   res.send({
     express: `Hello From Express ${new Date().toLocaleString()}
@@ -56,11 +65,26 @@ app.post("/api/get", async (req, res) => {
   console.log("/api/pets hit");
   console.log(req.body);
 
-  var results = await getAllPets();
+  const dataType = req.body.dataType;
+
+  var results;
+
+  switch (dataType) {
+    case "Pets":
+      results = await getAllPets();
+      break;
+
+    case "Vets":
+      results = await getAllVets();
+      break;
+
+    default:
+      break;
+  }
 
   res.send({
     action: "GetAll",
-    dataType: "Pets",
+    dataType: dataType,
     resultCount: results.length,
     data: results
   });
@@ -70,9 +94,40 @@ app.post("/api/add", async (req, res) => {
   console.log("/api/add hit");
   console.log(req.body);
 
-  // NOTE: Happy path, this will break if data trash comes through
+  const dataType = req.body.dataType;
 
-  var pet = req.body.data;
+  var results;
+
+  switch (dataType) {
+    case "Pets":
+      results = await addPet(req.body.data);
+      break;
+
+    case "Vets":
+      results = await addVet(req.body.data);
+      break;
+
+    default:
+      break;
+  }
+
+  res.send({
+    action: "GetAll",
+    dataType: "Pets",
+    resultCount: results.length,
+    data: results
+  });
+});
+
+app.get("*", function(req, res) {
+  console.log("non existing route called");
+  res.render("error");
+});
+
+app.listen(port, () => console.log(`Listening on port ${port}`));
+
+async function addPet(pet) {
+  // NOTE: Happy path, this will break if data trash comes through
 
   var typeIdResult = await queryDbAsync(
     ` SELECT * 
@@ -91,11 +146,6 @@ app.post("/api/add", async (req, res) => {
   );
   var ownerId = ownerResult[0].ID;
 
-  var maxIdResult = await queryDbAsync(
-    ` SELECT MAX(ID) as ID FROM "PUBLIC"."PETS"`
-  );
-  var maxId = maxIdResult[0].ID;
-
   var petResult = await queryDbAsync(
     ` SELECT * FROM "PUBLIC"."PETS"
       WHERE NAME = '${pet.NAME}' 
@@ -107,29 +157,63 @@ app.post("/api/add", async (req, res) => {
 
   // TODO: figure out why this is sometimes getting called many times (I suspect that it is the development environment)
   if (petResult.length <= 0) {
+    var maxIdResult = await queryDbAsync(
+      ` SELECT MAX(ID) as ID FROM "PUBLIC"."PETS"`
+    );
+    var maxId = maxIdResult[0].ID;
+
     var addResult = await insertDbAsync(
       ` INSERT INTO "PUBLIC"."PETS"
         ( "ID", "NAME", "BIRTH_DATE", "TYPE_ID", "OWNER_ID" )
       VALUES ( ${maxId + 1}, '${pet.NAME}', '${
         pet.BIRTH_DATE
-      }', ${typeId}, ${ownerId})
+      }', ${typeId}, ${ownerId} )
   `
     );
   }
 
   var results = await getAllPets();
+  return results;
+}
 
-  res.send({
-    action: "GetAll",
-    dataType: "Pets",
-    resultCount: results.length,
-    data: results
-  });
-});
+async function addVet(vet) {
+  // NOTE: Happy path, this will break if data trash comes through
+  try {
+    var vetResult = await queryDbAsync(
+      ` SELECT * FROM "PUBLIC"."VETS"
+      WHERE FIRST_NAME = '${vet.FIRST_NAME}' 
+        and LAST_NAME = '${vet.LAST_NAME}'
+    `
+    );
 
-app.get("*", function(req, res) {
-  console.log("non existing route called");
-  res.render("error");
-});
+    // TODO: figure out why this is sometimes getting called many times (I suspect that it is the development environment)
+    if (vetResult.length <= 0) {
+      var maxIdResult = await queryDbAsync(
+        ` SELECT MAX(ID) as ID FROM "PUBLIC"."VETS"`
+      );
+      var maxId = maxIdResult[0].ID;
 
-app.listen(port, () => console.log(`Listening on port ${port}`));
+      var addResult = await insertDbAsync(
+        ` INSERT INTO "PUBLIC"."VETS"
+            ( "ID", "FIRST_NAME", "LAST_NAME" )
+          VALUES 
+            ( ${maxId + 1}, '${vet.FIRST_NAME}', '${vet.LAST_NAME}' )
+        `
+      );
+    }
+  } catch (err) {
+    console.log(
+      `${new Date().toLocaleTimeString()}: error during add vet: ${err}`
+    );
+  }
+
+  try {
+    var results = await getAllVets();
+    return results;
+  } catch (err) {
+    console.log(
+      `${new Date().toLocaleTimeString()}: error during retrievent all vets after add attempt: ${err}`
+    );
+    return [];
+  }
+}

@@ -4,11 +4,13 @@ import {
   INavigateToPageAction
 } from "../shared/Interfaces";
 import { buildState, IActionHandlerDictionary } from "../shared/Utilities";
+import Data from "./Data";
 
 export enum Pages {
   Unknown,
   Home,
-  Pets
+  Pets,
+  Vets
 }
 
 export const Navigators = {
@@ -23,7 +25,12 @@ export const Navigators = {
     Navigators.navigateTo(state, dispatch, Pages.Home);
   },
   navigateToPets: (state: IAppState, dispatch: any) => {
+    Data.request.pets(state, dispatch);
     Navigators.navigateTo(state, dispatch, Pages.Pets);
+  },
+  navigateToVets: (state: IAppState, dispatch: any) => {
+    Data.request.vets(state, dispatch);
+    Navigators.navigateTo(state, dispatch, Pages.Vets);
   }
 };
 

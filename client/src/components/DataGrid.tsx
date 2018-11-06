@@ -20,16 +20,15 @@ import {
   TableEditColumn,
   TableEditRow,
   TableFilterRow,
-  TableHeaderRow,
-  Toolbar
+  TableHeaderRow
 } from "@devexpress/dx-react-grid-material-ui";
 // tslint:disable-next-line:ordered-imports
 import { Paper } from "@material-ui/core";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import Data, { DataType } from "../logic/Data";
-import { ActionType, IAddPetData, IAppState } from "../shared/Interfaces";
+import { DataType } from "../logic/Data";
+import { ActionType, IAppState } from "../shared/Interfaces";
 
 const GRID_STATE_CHANGE_ACTION = ActionType.DataGridStateChange;
 
@@ -46,6 +45,7 @@ export interface IDataGridProps extends IAppState {
   onRowChangesChange: any;
   onAddedRowsChange: any;
   onCommitChanges: any;
+  onAddRecord: any;
 }
 
 const GridContainer = (props: IDataGridProps) => {
@@ -102,7 +102,6 @@ const GridContainer = (props: IDataGridProps) => {
         />
 
         <TableFilterRow />
-        <Toolbar />
         <PagingPanel pageSizes={gridProps.pageSizes} />
         <TableEditRow />
         <TableEditColumn
@@ -110,7 +109,11 @@ const GridContainer = (props: IDataGridProps) => {
           showEditCommand={false}
           showDeleteCommand={false}
         />
-        <TableBandHeader columnBands={gridProps.columnBands} />
+        {!gridProps.columnBands || gridProps.columnBands.length === 0 ? (
+          <React.Fragment />
+        ) : (
+          <TableBandHeader columnBands={gridProps.columnBands} />
+        )}
       </Grid>
     </Paper>
   );
@@ -244,12 +247,12 @@ const mergeProps = (
         return;
       }
 
-      const pet = added.added[0] as IAddPetData;
-      if (pet === undefined) {
+      const record = added.added[0];
+      if (record === undefined) {
         return;
       }
 
-      Data.request.addPet(merged, pet, dispatch);
+      ownProps.onAddRecord(merged, record, dispatch);
     }
   };
 

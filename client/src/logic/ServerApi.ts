@@ -1,6 +1,7 @@
 import {
   ActionType,
   IAddPetData,
+  IAddVetData,
   IAppState,
   IDataAddBeginAction,
   IDataAddCompleteAction,
@@ -17,10 +18,15 @@ function getPets(dispatch: any) {
   return getData(dispatch, DataType.Pets);
 }
 
+function getVets(dispatch: any) {
+  return getData(dispatch, DataType.Vets);
+}
+
 // #region get
 
 // #region put
 
+// TODO: Consider refactoring these very similar looking functions
 function addPet(state: IAppState, pet: IAddPetData, dispatch: any) {
   dispatch({
     data: pet,
@@ -56,6 +62,49 @@ function addPet(state: IAppState, pet: IAddPetData, dispatch: any) {
         dispatch({
           data: pet,
           dataType: DataType.Pets,
+          response,
+          type: ActionType.DataAddRequestComplete,
+          when: new Date()
+        } as IDataAddCompleteAction)
+      );
+  };
+}
+
+function addVet(state: IAppState, vet: IAddVetData, dispatch: any) {
+  dispatch({
+    data: vet,
+    dataType: DataType.Vets,
+    type: ActionType.DataAddRequestBegin,
+    when: new Date()
+  } as IDataAddBeginAction);
+
+  // tslint:disable-next-line:no-shadowed-variable
+  return async function adder(dispatch: any) {
+    dispatch(Server.addVet(state, vet, dispatch));
+
+    const request = new Request("/api/add", {
+      body: JSON.stringify({ dataType: DataType.Vets, data: vet }),
+      headers: { "Content-Type": "application/json" },
+      method: "post"
+    });
+
+    return fetch(request)
+      .then(
+        (response: Response) => {
+          return response.json();
+        },
+        (error: any) =>
+          dispatch({
+            data: vet,
+            dataType: DataType.Vets,
+            error,
+            type: ActionType.DataAddRequestFailed
+          } as IDataAddFailedAction)
+      )
+      .then((response: any) =>
+        dispatch({
+          data: vet,
+          dataType: DataType.Vets,
           response,
           type: ActionType.DataAddRequestComplete,
           when: new Date()
@@ -110,8 +159,10 @@ function getData(dispatch: any, dataType: DataType) {
 
 const Server = {
   getPets,
+  getVets,
 
-  addPet
+  addPet,
+  addVet
 };
 
 export default Server;

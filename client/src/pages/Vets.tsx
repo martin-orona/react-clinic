@@ -1,22 +1,25 @@
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { ReduxPetsDataGrid } from "../component-containers/ReduxPetsDataGrid";
+import { ReduxVetsDataGrid } from "../component-containers/ReduxVetsDataGrid";
 import Data from "../logic/Data";
 import { Pages } from "../logic/Navigation";
 import { IAppState } from "../shared/Interfaces";
 import { buildState } from "../shared/Utilities";
 import Page from "./Page";
 
-interface IPetsPageProps extends IAppState {
-  requestPetList: () => void;
+interface IVetsPageProps extends IAppState {
+  requestVetList: () => void;
 }
-const Pets = (props: IPetsPageProps) => {
+const Vets = (props: IVetsPageProps) => {
   return (
-    <Page whichPage={Pages.Pets}>
-      <p>These are the lovely patients that give our lives meaning?</p>
+    <Page whichPage={Pages.Vets}>
+      <p>
+        These are the heroes that save out patients, they deserve a prime time
+        drama; 20 years ago!
+      </p>
 
-      <ReduxPetsDataGrid />
+      <ReduxVetsDataGrid />
     </Page>
   );
 };
@@ -34,17 +37,17 @@ const mergeProps = (
     stateProps,
     { whichPage: ownProps.whichPage },
     {
-      requestPetList: () => {
-        Data.request.pets(stateProps, dispatchProps.dispatch);
+      requestVetList: () => {
+        Data.request.vets(stateProps, dispatchProps.dispatch);
       }
     },
     ownProps
   );
 };
 
-const ReduxPets = connect(
+const ReduxVets = connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(Pets);
-export default ReduxPets;
+)(Vets);
+export default ReduxVets;

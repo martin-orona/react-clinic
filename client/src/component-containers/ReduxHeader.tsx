@@ -20,7 +20,9 @@ const mergeProps = (
       onNavigateToHome: () =>
         Navigators.navigateToHome(stateProps, dispatchProps.dispatch),
       onNavigateToPets: () =>
-        Navigators.navigateToPets(stateProps, dispatchProps.dispatch)
+        Navigators.navigateToPets(stateProps, dispatchProps.dispatch),
+      onNavigateToVets: () =>
+        Navigators.navigateToVets(stateProps, dispatchProps.dispatch)
     },
     ownProps
   );

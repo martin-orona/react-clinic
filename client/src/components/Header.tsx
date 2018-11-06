@@ -27,6 +27,7 @@ export interface IHeaderProps {
   config: IAppConfig;
   onNavigateToHome: () => void;
   onNavigateToPets: () => void;
+  onNavigateToVets: () => void;
 }
 
 function Header(props: IHeaderProps) {
@@ -49,6 +50,9 @@ function Header(props: IHeaderProps) {
           <Typography variant="h6" color="inherit" className={classes.grow} />
           <Button color="inherit" onClick={props.onNavigateToPets}>
             Pets
+          </Button>
+          <Button color="inherit" onClick={props.onNavigateToVets}>
+            Vets
           </Button>
         </Toolbar>
       </AppBar>

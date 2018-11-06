@@ -9,16 +9,25 @@ import { IActionHandlerDictionary, Reducers } from "./shared/Utilities";
 export const AppDefaultState: IAppState = {
   config: {
     businessName: "Pets Effervescent Forever",
-    dataCacheGoneStalePeriod_inSeconds: 30
+    dataCacheGoneStalePeriod_inSeconds: 5
   },
   data: {
-    isKnownStale: { [DataType.Pets]: true },
-    lastRequest: { [DataType.Pets]: new Date(1) },
-    lastUpdate: { [DataType.Pets]: new Date(1) },
+    isKnownStale: {
+      [DataType.Pets]: true,
+      [DataType.Vets]: true
+    },
+    lastRequest: {
+      [DataType.Pets]: new Date(1),
+      [DataType.Vets]: new Date(1)
+    },
+    lastUpdate: {
+      [DataType.Pets]: new Date(1),
+      [DataType.Vets]: new Date(1)
+    },
     values: {}
   },
   ui: {
-    currentPage: Pages.Pets,
+    currentPage: Pages.Home,
     grid: {}
   }
 };

@@ -71,6 +71,18 @@ export interface IPetDisplayData {
 // tslint:disable-next-line:no-empty-interface
 export interface IAddPetData extends IPetDisplayData {}
 
+export interface IVetTableRecord extends IVetDisplayData {
+  ID: number;
+}
+
+export interface IVetDisplayData {
+  FIRST_NAME: string;
+  LAST_NAME: string;
+}
+
+// tslint:disable-next-line:no-empty-interface
+export interface IAddVetData extends IVetDisplayData {}
+
 // #endregion app state
 
 // #region redux interfaces

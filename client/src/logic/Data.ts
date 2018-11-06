@@ -1,6 +1,7 @@
 import {
   ActionType,
   IAddPetData,
+  IAddVetData,
   IAppState,
   IDataGridNotReadyToSaveAction,
   IDataRequestBeginAction,
@@ -14,7 +15,8 @@ import Server from "./ServerApi";
 
 export enum DataType {
   Unknown = "Unknown",
-  Pets = "Pets"
+  Pets = "Pets",
+  Vets = "Vets"
 }
 
 // #endregion interfaces
@@ -101,6 +103,25 @@ function requestPets(state: IAppState, dispatch: any) {
   }
 }
 
+function requestVets(state: IAppState, dispatch: any) {
+  const shouldRequest = shouldRequestData(state, DataType.Vets);
+
+  // tslint:disable-next-line:no-console
+  console.log(
+    `data request: type:${DataType.Vets} should:${
+      shouldRequest.should
+    } reason:${shouldRequest.reason}`
+  );
+
+  if (shouldRequest.should) {
+    // tslint:disable-next-line:no-console
+    console.log('"calling" server');
+
+    // dispatch(callServer_InitialRequest(stateProps) as any);
+    dispatch(Server.getVets(dispatch));
+  }
+}
+
 function addPet(state: IAppState, pet: IAddPetData, dispatch: any) {
   let hasAllRequiredProperties = true;
 
@@ -109,6 +130,18 @@ function addPet(state: IAppState, pet: IAddPetData, dispatch: any) {
   }
 
   if (!pet.hasOwnProperty("TYPE_NAME")) {
+    hasAllRequiredProperties = false;
+  }
+
+  if (!pet.hasOwnProperty("BIRTH_DATE")) {
+    hasAllRequiredProperties = false;
+  }
+
+  if (!pet.hasOwnProperty("OWNER_FIRST_NAME")) {
+    hasAllRequiredProperties = false;
+  }
+
+  if (!pet.hasOwnProperty("OWNER_LAST_NAME")) {
     hasAllRequiredProperties = false;
   }
 
@@ -127,9 +160,38 @@ function addPet(state: IAppState, pet: IAddPetData, dispatch: any) {
   dispatch(Server.addPet(state, pet, dispatch));
 }
 
+function addVet(state: IAppState, vet: IAddVetData, dispatch: any) {
+  let hasAllRequiredProperties = true;
+
+  if (!vet.hasOwnProperty("FIRST_NAME")) {
+    hasAllRequiredProperties = false;
+  }
+
+  if (!vet.hasOwnProperty("LAST_NAME")) {
+    hasAllRequiredProperties = false;
+  }
+
+  if (!hasAllRequiredProperties) {
+    window.setTimeout(() => {
+      dispatch({
+        added: [vet],
+        dataGridType: DataType.Vets,
+        type: ActionType.DataGridNotReadyToSave
+      } as IDataGridNotReadyToSaveAction);
+    }, 10);
+
+    return;
+  }
+
+  dispatch(Server.addVet(state, vet, dispatch));
+}
+
 const Requests = {
+  pets: requestPets,
+  vets: requestVets,
+
   addPet,
-  pets: requestPets
+  addVet
 };
 
 // #endregion requests
@@ -142,13 +204,13 @@ const Requests = {
 // }
 
 function shouldRequestData(state: IAppState, type: DataType) {
-  let should = state.data.isKnownStale[DataType.Pets];
+  let should = state.data.isKnownStale[type];
   let reason = should ? "known stale" : "not known stale";
 
   if (
     !should &&
     isStale(
-      state.data.lastUpdate[DataType.Pets],
+      state.data.lastUpdate[type],
       state.config.dataCacheGoneStalePeriod_inSeconds
     )
   ) {
@@ -159,7 +221,7 @@ function shouldRequestData(state: IAppState, type: DataType) {
   if (
     should &&
     !isStale(
-      state.data.lastRequest[DataType.Pets],
+      state.data.lastRequest[type],
       state.config.dataCacheGoneStalePeriod_inSeconds
     )
   ) {

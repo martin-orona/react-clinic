@@ -116,7 +116,7 @@ async function query(db, sqlStatement) {
     connObj = await openConnectionAsync(db);
   } catch (err) {
     console.log(`DB error while opening connection. error:[${err}]`);
-    return;
+    throw err;
   }
 
   let queryError = undefined;
